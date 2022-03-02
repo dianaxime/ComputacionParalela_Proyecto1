@@ -61,13 +61,13 @@ int main(int argc, char *argv[]) {
     }
     
     // TODO: Validar el calculo del err
-    while (errCalculado < err || n < 10) {
+    while (n < 100000 && errCalculado < err) {
     	// Calcular las temperaturas
     	for(int j = 1; j < N - 1; j++) {
 			temperaturaCopy[j] = calcularTj(temperatura[j - 1], temperatura[j], temperatura[j + 1]);
 			//printf("%lf \t", temperaturaCopy[j]);
 		}
-		
+		//printf("%d \n", n);
 		// Actualizar array de solucion y calcular el err actual
 		sum = 0.0;
 		for (int k = 1; k < N - 1; k++) {
@@ -79,11 +79,11 @@ int main(int argc, char *argv[]) {
 		errCalculado = sum / N;
 		n += 1;
     }
-    printf("%lf \t", errCalculado);
     // Mostrar resultados
     for (int i = 0; i < N; i++) {
 		printf("%lf \t", temperatura[i]);
 	}
+    printf("\n %lf \t", errCalculado);
 }
 
 
