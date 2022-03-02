@@ -11,11 +11,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/time.h>
+#include <math.h>
 
 #define c 1e-5
+#define L 10
 
 int main(int argc, char *argv[]) {
-    double err, T0, TL, TR;
+    double err, T0, TL, TR, dx, dt, errCalculado;
     int N;
 
     printf("--- Ingrese los parámetros para iniciar la simulación --- \n");
@@ -31,6 +33,11 @@ int main(int argc, char *argv[]) {
     scanf("%lf", &TR);
     
     double temperatura[N], temperaturaCopy[N];
+    
+    // Calcular dx, dt
+    dx = (L * 1.0) / N;
+    // dt = pow(dx, 2) / c;
+    dt = 0.5 * pow(dx, 2) / c;
     
     // Asignar los valores iniciales
     temperatura[0] = TL;
