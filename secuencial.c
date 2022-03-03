@@ -34,11 +34,11 @@ int main(int argc, char *argv[]) {
     scanf("%lf", &err);
     printf("Número de intervalos discretos: ");
     scanf("%d", &N);
-    printf("Temperatura inicial de toda la barra:");
+    printf("Temperatura inicial de toda la barra: ");
     scanf("%lf", &T0);
     printf("Temperatura en la frontera izquierda (x=0): ");
     scanf("%lf", &TL);
-    printf("Temperatura en la frontera derecha (x=L):");
+    printf("Temperatura en la frontera derecha (x=L): ");
     scanf("%lf", &TR);
     
     double temperatura[N], temperaturaCopy[N];
@@ -47,6 +47,10 @@ int main(int argc, char *argv[]) {
     // dx = (L * 1.0) / N;
     // dt = pow(dx, 2) / c;
     // dt = 0.5 * pow(dx, 2) / c;
+    
+    // Empezar a medir tiempo
+    struct timeval begin, end;
+    gettimeofday(&begin, 0);
     
     // Asignar los valores iniciales
     temperatura[0] = TL;
@@ -83,7 +87,14 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < N; i++) {
 		printf("%lf \t", temperatura[i]);
 	}
-    printf("\n %lf \t", errCalculado);
-}
 
+    printf("\nError calculado: %lf \n", errCalculado);
+    
+    // Calcular el tiempo transcurrido
+    gettimeofday(&end, 0);
+    long seconds = end.tv_sec - begin.tv_sec;
+    long microseconds = end.tv_usec - begin.tv_usec;
+    double elapsed = seconds + microseconds * 1e-6;
+    printf("Time: %.3f segundos.\n", elapsed);
+}
 
