@@ -1,5 +1,5 @@
 //--------------------------------------------------------------
-// Proyecto 1
+// Proyecto 1 - Paralela UVG
 //--------------------------------------------------------------
 // Ecuación unidimensional de disipación de calor
 //--------------------------------------------------------------
@@ -48,25 +48,25 @@ int main(int argc, char *argv[]) {
     // dt = pow(dx, 2) / c;
     // dt = 0.5 * pow(dx, 2) / c;
     
-    // Empezar a medir tiempo
+    // Se comienza a medir el tiempo
     struct timeval begin, end;
     gettimeofday(&begin, 0);
     
-    // Asignar los valores iniciales
+    // Se asignan los valores iniciales
     temperatura[0] = TL;
     temperatura[N - 1] = TR;
     
     temperaturaCopy[0] = TL;
     temperaturaCopy[N - 1] = TR;
     
-    // Inicializar array
+    // Se inicializa el array
     #pragma omp parallel for private(i)\
     schedule(guided,10)
     for (int i = 1; i < N - 1; i++) {
     	temperatura[i] = T0;
     }
     
-    // TODO: Validar el calculo del err
+    // Validacion del calculo del err
     while (n < 100000 && errCalculado < err) {
     	// Calcular las temperaturas
     	for(int j = 1; j < N - 1; j++) {
@@ -74,7 +74,7 @@ int main(int argc, char *argv[]) {
 			//printf("%lf \t", temperaturaCopy[j]);
 		}
 		//printf("%d \n", n);
-		// Actualizar array de solucion y calcular el err actual
+		// Se actualiza el array de solucion y el err actual
 		sum = 0.0;
 		#pragma omp parallel for private(k)\
     	schedule(guided,10)
@@ -87,14 +87,14 @@ int main(int argc, char *argv[]) {
 		errCalculado = sum / N;
 		n += 1;
     }
-    // Mostrar resultados
+    // Se muestran los resultados al user
     for (int i = 0; i < N; i++) {
 		printf("%lf \t", temperatura[i]);
 	}
 
     printf("\nError calculado: %lf \n", errCalculado);
     
-    // Calcular el tiempo transcurrido
+    // Calcular el tiempo transcurrido en ejecucion
     gettimeofday(&end, 0);
     long seconds = end.tv_sec - begin.tv_sec;
     long microseconds = end.tv_usec - begin.tv_usec;
