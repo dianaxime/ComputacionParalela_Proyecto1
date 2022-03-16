@@ -20,7 +20,7 @@
 #define c 1e-5
 #define L 10
 #define C 0.5
-#define Iter 1000000
+#define Iter 100000
 
 int thread_count;
 
@@ -28,37 +28,30 @@ double calcularTj(double TjAnt, double TjAct, double TjSig) {
 	return TjAct + C * (TjAnt - 2 * TjAct + TjSig);
 }
 
-void parHeatDisipation(double *data, double *dataCopy, int N, double err, int id, int count, int chunkSize) {
-	double sum, errCalculado = 1e-25;
-	int k, n = 0;
-	
+double parHeatDisipation(double *data, double *dataCopy, int N, double err, int id, int count, int chunkSize) {
 	int inicio = (id != 1) ? (id - 1) * chunkSize : 1;
 	int fin = (id != count) ? id * chunkSize : N - 1;
 	
-	// TODO: Validar el calculo del err
-    while (n < Iter && errCalculado < err) {
-    	// Calcular las temperaturas
-    	for(int j = inicio; j < fin; j++) {
-    		dataCopy[j] = calcularTj(data[j - 1], data[j], data[j + 1]);
-		}
+	// Calcular las temperaturas
+	for(int j = inicio; j < fin; ++j) {
+		dataCopy[j] = calcularTj(data[j - 1], data[j], data[j + 1]);
+	}
 
-		// Actualizar array de solucion y calcular el err actual
-		sum = 0.0;
-		for (k = 1; k < N - 1; k++) {
-			sum += dataCopy[k] - dataCopy[k - 1];
-			data[k] = dataCopy[k];
-		}
+	// Actualizar array de solucion y calcular el err actual
+	double sum = 0.0;
+	for (int k = 1; k < N - 1; ++k) {
+		sum += dataCopy[k] - dataCopy[k - 1];
+		data[k] = dataCopy[k];
+	}
 		
-		errCalculado = sum / N;
-		++n;
-    }
+	return sum / N;
 }
 
 
 int main(int argc, char *argv[]) {
 	thread_count = strtol(argv[1], NULL, 10);
-    double err, T0, TL, TR, dx, dt;
-    int N, i, t, chunkSize;
+    double err, T0, TL, TR, dx, dt, errCalculado = 1e-25;
+    int N, i, t, chunkSize, n = 0;
     double *temperatura, *temperaturaCopy;
 
     printf("--- Ingrese los parámetros para iniciar la simulación --- \n");
@@ -100,26 +93,25 @@ int main(int argc, char *argv[]) {
     // Inicializar array
     #pragma omp parallel for private(i)\
     schedule(guided, 8)
-    for (i = 1; i < N - 1; i++) {
+    for (i = 1; i < N - 1; ++i) {
     	temperatura[i] = T0;
     }
     
     chunkSize = (int) (N / thread_count * 1.0);
-    //private(t, N, err, count)\
-    //shared(temperatura, temperaturaCopy)
-    // Opcion 1 (solo esta linea)
-    #pragma omp parallel for schedule(static, 1) num_threads(thread_count)
-    // Opcion 2
-    //#pragma omp parallel
-    //#pragma omp single nowait
-	for (t = 1; t <= thread_count; t++) {
-		// Opcion 2 tambien
-		// #pragma omp task
-		parHeatDisipation(temperatura, temperaturaCopy, N, err, t, thread_count, chunkSize);
+    
+    #pragma omp parallel
+    #pragma omp single nowait
+    while (n < Iter && errCalculado < err) {
+    	for (t = 1; t <= thread_count; ++t) {
+			#pragma omp task
+			errCalculado = parHeatDisipation(temperatura, temperaturaCopy, N, err, t, thread_count, chunkSize);
+		}
+		
+		++n;
 	}
 
     // Mostrar resultados
-    for (i = 0; i < N; i++) {
+    for (i = 0; i < N; ++i) {
 		printf("%lf \t", temperatura[i]);
 	}
 

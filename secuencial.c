@@ -18,7 +18,7 @@
 #define c 1e-5
 #define L 10
 #define C 0.5
-#define Iter 1000000
+#define Iter 100000
 
 double calcularTj(double TjAnt, double TjAct, double TjSig) {
 	double Tj = TjAct + C * (TjAnt - 2 * TjAct + TjSig);
@@ -72,14 +72,12 @@ int main(int argc, char *argv[]) {
     	// Calcular las temperaturas
     	for(int j = 1; j < N - 1; j++) {
 			temperaturaCopy[j] = calcularTj(temperatura[j - 1], temperatura[j], temperatura[j + 1]);
-			//printf("%lf \t", temperaturaCopy[j]);
 		}
-		//printf("%d \n", n);
+		
 		// Actualizar array de solucion y calcular el err actual
 		sum = 0.0;
 		for (int k = 1; k < N - 1; k++) {
 			sum += temperaturaCopy[k] - temperaturaCopy[k - 1];
-			//printf("%lf \t", (temperaturaCopy[k] - temperaturaCopy[k - 1]));
 			temperatura[k] = temperaturaCopy[k];
 		}
 		
@@ -90,8 +88,6 @@ int main(int argc, char *argv[]) {
     for (int i = 0; i < N; i++) {
 		printf("%lf \t", temperatura[i]);
 	}
-
-    printf("\nError calculado: %lf \n", errCalculado);
     
     // Calcular el tiempo transcurrido
     gettimeofday(&end, 0);
