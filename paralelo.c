@@ -33,17 +33,17 @@ void parHeatDisipation(double *data, double *dataCopy, int N, double err, int id
 	int k, n = 0;
 	
 	int chunkSize = (int) (N / count * 1.0);
-	printf("N = %d count = %d chunkSize = %d \n", N, count, chunkSize);
-	int inicio, final; 
+	// printf("N = %d count = %d chunkSize = %d \n", N, count, chunkSize);
+	int inicio, fin; 
 	inicio = (id != 1) ? (id -1) * chunkSize : 1;
-	final = (id != count) ? id * chunkSize : N - 1;
+	fin = (id != count) ? id * chunkSize : N - 1;
 	
-	printf("id = %d inicio = %d fin = %d \n", id, inicio, final);
+	// printf("id = %d inicio = %d fin = %d \n", id, inicio, final);
 	
 	// TODO: Validar el calculo del err
     while (n < 100000 && errCalculado < err) {
     	// Calcular las temperaturas
-    	for(int j = inicio; j < final; j++) {
+    	for(int j = inicio; j < fin; j++) {
     		dataCopy[j] = calcularTj(data[j - 1], data[j], data[j + 1]);
 		}
 
@@ -140,4 +140,3 @@ int main(int argc, char *argv[]) {
     double elapsed = seconds + microseconds * 1e-6;
     printf("Time: %.3f segundos.\n", elapsed);
 }
-
