@@ -1,5 +1,5 @@
 //--------------------------------------------------------------
-// Proyecto 1 - Paralela UVG
+// Proyecto 1
 //--------------------------------------------------------------
 // Ecuación unidimensional de disipación de calor
 //--------------------------------------------------------------
@@ -7,6 +7,8 @@
 // Paula Camila Gonzalez Ortega, 18398
 // Diana Ximena de León Figueroa, 18607
 // Maria Ines Vasquez Figueroa, 18250
+// gcc -o secuencial secuencial.c -lm
+// ./secuencial
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -17,7 +19,7 @@
 #define L 10
 #define C 0.5
 
-double calcularTj(double TjAnt, double TjAct, double TjSig){
+double calcularTj(double TjAnt, double TjAct, double TjSig) {
 	double Tj = TjAct + C * (TjAnt - 2 * TjAct + TjSig);
 	
 	return Tj;
@@ -48,31 +50,31 @@ int main(int argc, char *argv[]) {
     // dt = pow(dx, 2) / c;
     // dt = 0.5 * pow(dx, 2) / c;
     
-    // Se comienza a medir el tiempo
+    // Empezar a medir tiempo
     struct timeval begin, end;
     gettimeofday(&begin, 0);
     
-    // Se asignan los valores iniciales
+    // Asignar los valores iniciales
     temperatura[0] = TL;
     temperatura[N - 1] = TR;
     
     temperaturaCopy[0] = TL;
     temperaturaCopy[N - 1] = TR;
     
-    // Se inicializa el array
+    // Inicializar array
     for (int i = 1; i < N - 1; i++) {
     	temperatura[i] = T0;
     }
     
-    // Se valida el calculo del err
+    // TODO: Validar el calculo del err
     while (n < 100000 && errCalculado < err) {
-    	// Calculo de las temperaturas
+    	// Calcular las temperaturas
     	for(int j = 1; j < N - 1; j++) {
 			temperaturaCopy[j] = calcularTj(temperatura[j - 1], temperatura[j], temperatura[j + 1]);
 			//printf("%lf \t", temperaturaCopy[j]);
 		}
 		//printf("%d \n", n);
-		// Actualizacion del array de solucion y calculo del err actual
+		// Actualizar array de solucion y calcular el err actual
 		sum = 0.0;
 		for (int k = 1; k < N - 1; k++) {
 			sum += temperaturaCopy[k] - temperaturaCopy[k - 1];
@@ -90,7 +92,7 @@ int main(int argc, char *argv[]) {
 
     printf("\nError calculado: %lf \n", errCalculado);
     
-    // Se calcula el tiempo transcurrido
+    // Calcular el tiempo transcurrido
     gettimeofday(&end, 0);
     long seconds = end.tv_sec - begin.tv_sec;
     long microseconds = end.tv_usec - begin.tv_usec;
