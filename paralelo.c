@@ -44,17 +44,13 @@ void parHeatDisipation(double *data, double *dataCopy, int N, double err, int id
     while (n < 100000 && errCalculado < err) {
     	// Calcular las temperaturas
     	for(int j = inicio; j < final; j++) {
-    		#pragma omp task
-			dataCopy[j] = calcularTj(data[j - 1], data[j], data[j + 1]);
+    		dataCopy[j] = calcularTj(data[j - 1], data[j], data[j + 1]);
 		}
 
 		// Actualizar array de solucion y calcular el err actual
 		sum = 0.0;
-		#pragma omp parallel for private(k)\
-    		schedule(guided, 8)
 		for (k = 1; k < N - 1; k++) {
 			sum += dataCopy[k] - dataCopy[k - 1];
-			//printf("%lf \t", (temperaturaCopy[k] - temperaturaCopy[k - 1]));
 			data[k] = dataCopy[k];
 		}
 		
@@ -81,8 +77,6 @@ int main(int argc, char *argv[]) {
     scanf("%lf", &TL);
     printf("Temperatura en la frontera derecha (x=L): ");
     scanf("%lf", &TR);
-    
-    // printf("--->>> %d \n", N);
     
     //---- Asignación de memoria para el vector temperatura ----
     if ( (temperatura = (double *)malloc(N * sizeof(double))) == NULL )
@@ -120,9 +114,14 @@ int main(int argc, char *argv[]) {
     count = thread_count;
     //private(t, N, err, count)\
     //shared(temperatura, temperaturaCopy)
-    #pragma omp parallel for schedule(static, 1)
+    // Opcion 1 (solo esta linea)
+    #pragma omp parallel for schedule(static, 1) num_threads(thread_count)
+    // Opcion 2
+    //#pragma omp parallel
+    //#pragma omp single nowait
 	for (t = 1; t <= thread_count; t++) {
-		// printf("%ls \n", &N);
+		// Opcion 2 tambien
+		// #pragma omp task
 		parHeatDisipation(temperatura, temperaturaCopy, N, err, t, count);
 	}
 
@@ -131,8 +130,6 @@ int main(int argc, char *argv[]) {
 		printf("%lf \t", temperatura[i]);
 	}
 
-    // printf("\nError calculado: %lf \n", errCalculado);
-    
     free(temperatura);
     free(temperaturaCopy);
     
