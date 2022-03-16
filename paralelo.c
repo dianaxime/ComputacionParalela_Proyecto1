@@ -27,27 +27,35 @@ double calcularTj(double TjAnt, double TjAct, double TjSig) {
 	return TjAct + C * (TjAnt - 2 * TjAct + TjSig);
 }
 
-void parHeatDisipation(double data*, double dataCopy*, N, err, id) {
+void parHeatDisipation(double *data, double *dataCopy, int N, double err, int id, int count) {
 	double errCalculado = 1e-25;
 	double sum;
-	int n = 0;
-
+	int k, n = 0;
+	
+	int chunkSize = (int) (N / count * 1.0);
+	printf("N = %d count = %d chunkSize = %d \n", N, count, chunkSize);
+	int inicio, final; 
+	inicio = (id != 1) ? (id -1) * chunkSize : 1;
+	final = (id != count) ? id * chunkSize : N - 1;
+	
+	printf("id = %d inicio = %d fin = %d \n", id, inicio, final);
+	
 	// TODO: Validar el calculo del err
     while (n < 100000 && errCalculado < err) {
     	// Calcular las temperaturas
-    	for(int j = 1; j < N - 1; j++) {
-			temperaturaCopy[j] = calcularTj(temperatura[j - 1], temperatura[j], temperatura[j + 1]);
-			//printf("%lf \t", temperaturaCopy[j]);
+    	for(int j = inicio; j < final; j++) {
+    		#pragma omp task
+			dataCopy[j] = calcularTj(data[j - 1], data[j], data[j + 1]);
 		}
-		//printf("%d \n", n);
+
 		// Actualizar array de solucion y calcular el err actual
 		sum = 0.0;
 		#pragma omp parallel for private(k)\
     		schedule(guided, 8)
-		for (int k = 1; k < N - 1; k++) {
-			sum += temperaturaCopy[k] - temperaturaCopy[k - 1];
+		for (k = 1; k < N - 1; k++) {
+			sum += dataCopy[k] - dataCopy[k - 1];
 			//printf("%lf \t", (temperaturaCopy[k] - temperaturaCopy[k - 1]));
-			temperatura[k] = temperaturaCopy[k];
+			data[k] = dataCopy[k];
 		}
 		
 		errCalculado = sum / N;
@@ -57,8 +65,10 @@ void parHeatDisipation(double data*, double dataCopy*, N, err, id) {
 
 
 int main(int argc, char *argv[]) {
+	thread_count = strtol(argv[1], NULL, 10);
     double err, T0, TL, TR, dx, dt;
     int N;
+    double *temperatura, *temperaturaCopy;
 
     printf("--- Ingrese los parámetros para iniciar la simulación --- \n");
     printf("Precisión o diferencia requerida: ");
@@ -71,6 +81,8 @@ int main(int argc, char *argv[]) {
     scanf("%lf", &TL);
     printf("Temperatura en la frontera derecha (x=L): ");
     scanf("%lf", &TR);
+    
+    // printf("--->>> %d \n", N);
     
     //---- Asignación de memoria para el vector temperatura ----
     if ( (temperatura = (double *)malloc(N * sizeof(double))) == NULL )
@@ -97,28 +109,32 @@ int main(int argc, char *argv[]) {
     temperaturaCopy[N - 1] = TR;
     
     // Inicializar array
+    int i;
     #pragma omp parallel for private(i)\
     schedule(guided, 8)
-    for (int i = 1; i < N - 1; i++) {
+    for (i = 1; i < N - 1; i++) {
     	temperatura[i] = T0;
     }
     
-    int t;
-    #pragma omp parallel for private(t, N, err)\
-    shared(temperatura, temperaturaCopy)\
-    schedule(static, 1)
-	{
-		for (t = 0; t < thread_count; t++) {
-			parHeatDisipation(temperatura, temperaturaCopy, N, err, t);
-		}
-    }
+    int t, count;
+    count = thread_count;
+    //private(t, N, err, count)\
+    //shared(temperatura, temperaturaCopy)
+    #pragma omp parallel for schedule(static, 1)
+	for (t = 1; t <= thread_count; t++) {
+		// printf("%ls \n", &N);
+		parHeatDisipation(temperatura, temperaturaCopy, N, err, t, count);
+	}
 
     // Mostrar resultados
-    for (int i = 0; i < N; i++) {
+    for (i = 0; i < N; i++) {
 		printf("%lf \t", temperatura[i]);
 	}
 
-    printf("\nError calculado: %lf \n", errCalculado);
+    // printf("\nError calculado: %lf \n", errCalculado);
+    
+    free(temperatura);
+    free(temperaturaCopy);
     
     // Calcular el tiempo transcurrido
     gettimeofday(&end, 0);
