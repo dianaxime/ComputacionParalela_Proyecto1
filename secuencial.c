@@ -18,6 +18,7 @@
 #define c 1e-5
 #define L 10
 #define C 0.5
+#define Iter 1000000
 
 double calcularTj(double TjAnt, double TjAct, double TjSig) {
 	double Tj = TjAct + C * (TjAnt - 2 * TjAct + TjSig);
@@ -67,7 +68,7 @@ int main(int argc, char *argv[]) {
     }
     
     // TODO: Validar el calculo del err
-    while (n < 100000 && errCalculado < err) {
+    while (n < Iter && errCalculado < err) {
     	// Calcular las temperaturas
     	for(int j = 1; j < N - 1; j++) {
 			temperaturaCopy[j] = calcularTj(temperatura[j - 1], temperatura[j], temperatura[j + 1]);
