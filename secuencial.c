@@ -28,7 +28,7 @@ double calcularTj(double TjAnt, double TjAct, double TjSig) {
 
 
 int main(int argc, char *argv[]) {
-    double err, T0, TL, TR, dx, dt, sum;
+    double err, T0, TL, TR, sum;
     int N, n = 0;
     double errCalculado = 1e-25;
 
@@ -46,11 +46,6 @@ int main(int argc, char *argv[]) {
     
     double temperatura[N], temperaturaCopy[N];
     
-    // Calcular dx, dt
-    // dx = (L * 1.0) / N;
-    // dt = pow(dx, 2) / c;
-    // dt = 0.5 * pow(dx, 2) / c;
-    
     // Empezar a medir tiempo
     struct timeval begin, end;
     gettimeofday(&begin, 0);
@@ -67,7 +62,6 @@ int main(int argc, char *argv[]) {
     	temperatura[i] = T0;
     }
     
-    // TODO: Validar el calculo del err
     while (n < Iter && errCalculado < err) {
     	// Calcular las temperaturas
     	for(int j = 1; j < N - 1; j++) {

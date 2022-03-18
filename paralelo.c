@@ -28,7 +28,7 @@ double calcularTj(double TjAnt, double TjAct, double TjSig) {
 	return TjAct + C * (TjAnt - 2 * TjAct + TjSig);
 }
 
-double parHeatDisipation(double *data, double *dataCopy, int N, double err, int id, int count, int chunkSize) {
+double parHeatDisipation(double *data, double *dataCopy, int N, int id, int count, int chunkSize) {
 	int inicio = (id != 1) ? (id - 1) * chunkSize : 1;
 	int fin = (id != count) ? id * chunkSize : N - 1;
 	
@@ -50,7 +50,7 @@ double parHeatDisipation(double *data, double *dataCopy, int N, double err, int 
 
 int main(int argc, char *argv[]) {
 	thread_count = strtol(argv[1], NULL, 10);
-    double err, T0, TL, TR, dx, dt, errCalculado = 1e-25;
+    double err, T0, TL, TR, errCalculado = 1e-25;
     int N, i, t, chunkSize, n = 0;
     double *temperatura, *temperaturaCopy;
 
@@ -73,11 +73,6 @@ int main(int argc, char *argv[]) {
 	//---- Asignación de memoria para el vector temperaturaCopy ----
     if ( (temperaturaCopy = (double *)malloc(N * sizeof(double))) == NULL )
     perror("memory allocation for temperaturaCopy");
-    
-    // Calcular dx, dt
-    // dx = (L * 1.0) / N;
-    // dt = pow(dx, 2) / c;
-    // dt = 0.5 * pow(dx, 2) / c;
     
     // Empezar a medir tiempo
     struct timeval begin, end;
@@ -104,7 +99,7 @@ int main(int argc, char *argv[]) {
     while (n < Iter && errCalculado < err) {
     	for (t = 1; t <= thread_count; ++t) {
 			#pragma omp task
-			errCalculado = parHeatDisipation(temperatura, temperaturaCopy, N, err, t, thread_count, chunkSize);
+			errCalculado = parHeatDisipation(temperatura, temperaturaCopy, N, t, thread_count, chunkSize);
 		}
 		
 		++n;
